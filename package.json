@@ -1,0 +1,31 @@
+{
+  "name": "uss-hustle",
+  "version": "1.0.0",
+  "description": "Space Age Hustle - The Zero-Gravity Productivity RPG Engine for Oneseco Media",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0 --port 3000",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "keywords": ["space-age-hustle", "trill-astro-buzz", "rpg", "productivity", "cloudflare-workers", "d1"],
+  "author": "Oneseco Media",
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20240208.0",
+    "@tailwindcss/vite": "^4.3.3",
+    "@types/canvas-confetti": "^1.9.0",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.1.2",
+    "tailwindcss": "^4.3.3",
+    "typescript": "^5.3.3",
+    "vite": "^8.3.4",
+    "wrangler": "^3.28.0"
+  },
+  "dependencies": {
+    "canvas-confetti": "^1.9.4",
+    "lucide-react": "^1.56.0",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0"
+  }
+}

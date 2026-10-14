@@ -1,0 +1,8 @@
+{
+  "name": "USS Hustle",
+  "description": "Space Age Hustle: The Zero-Gravity Productivity RPG Engine and Command Center for Oneseco Media",
+  "permissions": [],
+  "capabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
