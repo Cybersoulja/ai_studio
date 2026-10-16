@@ -1,15 +1,38 @@
 import React, { useState } from 'react';
-import { Terminal, Send, CheckCircle2, Shield, Bell, Zap, Play, RefreshCw, Cpu } from 'lucide-react';
+import {
+  Terminal,
+  Send,
+  CheckCircle2,
+  Shield,
+  Bell,
+  Zap,
+  Play,
+  RefreshCw,
+  Cpu,
+  Volume2,
+  VolumeX,
+  Radio,
+  Activity,
+  Sliders
+} from 'lucide-react';
 import { AutomationItem, OperationDraft } from '../types';
 import { SYSTEM_AUTOMATIONS } from '../data/initialData';
 import { playCosmicSound } from '../services/genesisEngine';
 
 interface OperationsGatewayProps {
   onTriggerDailyBriefing: () => void;
+  isAmbientPlaying: boolean;
+  ambientVolume: number;
+  onToggleAmbient: () => void;
+  onSetAmbientVolume: (vol: number) => void;
 }
 
 export const OperationsGateway: React.FC<OperationsGatewayProps> = ({
   onTriggerDailyBriefing,
+  isAmbientPlaying,
+  ambientVolume,
+  onToggleAmbient,
+  onSetAmbientVolume,
 }) => {
   const [drafts, setDrafts] = useState<OperationDraft[]>([
     {
@@ -54,11 +77,20 @@ export const OperationsGateway: React.FC<OperationsGatewayProps> = ({
         '  /approve DRAFT-ID PROJECTKEY — Review and generate Jira issue',
         '  /cancel DRAFT-ID — Cancel pending draft safely',
         '  /status [JIRA-KEY] — Check tracked operations',
+        '  /ambient — Toggle space station ambient soundscape',
         '  /briefing — Run 24h operations briefing',
         '  /clear — Clear terminal buffer'
       ]);
     } else if (cmd === '/clear') {
       setTerminalLogs(['🛸 Terminal buffer cleared.']);
+    } else if (cmd === '/ambient' || cmd.startsWith('/ambient') || cmd.startsWith('/audio')) {
+      onToggleAmbient();
+      setTerminalLogs((prev) => [
+        ...prev,
+        isAmbientPlaying
+          ? '🔇 Ambient space station soundscape paused.'
+          : '🛰️ Ambient space station soundscape engaged: Zero-G Reactor Core Hum & Ventilation online.'
+      ]);
     } else if (cmd.startsWith('/task')) {
       const payload = cmd.slice(5).trim();
       if (!payload) {
@@ -188,6 +220,122 @@ export const OperationsGateway: React.FC<OperationsGatewayProps> = ({
           <Bell className="w-4 h-4" />
           <span>Dispatch 09:00 Briefing Push</span>
         </button>
+      </div>
+
+      {/* Space Station Ambient Soundscape Console Card */}
+      <div className="bg-gradient-to-r from-[#121626] via-[#101428] to-[#121626] border border-cyan-800/60 rounded-xl p-4 md:p-5 shadow-[0_0_25px_rgba(6,182,212,0.1)] relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-64 h-32 bg-cyan-500/5 rounded-full blur-3xl pointer-events-none" />
+
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex items-center gap-3.5">
+            <div
+              className={`w-12 h-12 rounded-xl flex items-center justify-center text-xl border transition-all shrink-0 ${
+                isAmbientPlaying
+                  ? 'bg-cyan-950/80 border-cyan-400 text-cyan-300 shadow-[0_0_15px_rgba(6,182,212,0.4)] animate-pulse'
+                  : 'bg-[#0b0d17] border-[#232b47] text-slate-500'
+              }`}
+            >
+              {isAmbientPlaying ? (
+                <Volume2 className="w-6 h-6 text-cyan-300" />
+              ) : (
+                <VolumeX className="w-6 h-6 text-slate-500" />
+              )}
+            </div>
+
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="text-sm font-bold text-slate-100 uppercase tracking-wider flex items-center gap-1.5">
+                  <Activity className="w-4 h-4 text-cyan-400" />
+                  <span>Space Station Ambient Soundscape</span>
+                </h3>
+                <span
+                  className={`text-[10px] px-2 py-0.5 rounded-full font-mono font-bold flex items-center gap-1 ${
+                    isAmbientPlaying
+                      ? 'bg-emerald-950 text-emerald-300 border border-emerald-700/60'
+                      : 'bg-slate-900 text-slate-400 border border-slate-700'
+                  }`}
+                >
+                  <span
+                    className={`w-1.5 h-1.5 rounded-full ${
+                      isAmbientPlaying ? 'bg-emerald-400 animate-ping' : 'bg-slate-500'
+                    }`}
+                  />
+                  {isAmbientPlaying ? 'ACTIVE' : 'STANDBY'}
+                </span>
+              </div>
+              <p className="text-xs text-slate-400 mt-1 font-mono">
+                {isAmbientPlaying
+                  ? 'Reactor Hum (55Hz / 57.2Hz Binaural) • Cabin Airflow Ventilation • Harmonic Resonance'
+                  : 'Zero-G background audio offline. Toggle on to play low-volume space station soundscape.'}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-3">
+            {/* Volume presets and slider */}
+            <div className="flex items-center gap-2 bg-[#0b0d17] border border-[#232b47] rounded-lg px-3 py-1.5 text-xs font-mono">
+              <Sliders className="w-3.5 h-3.5 text-slate-400" />
+              <span className="text-slate-400 text-[11px]">Vol:</span>
+              <input
+                type="range"
+                min="0.05"
+                max="0.4"
+                step="0.01"
+                value={ambientVolume}
+                onChange={(e) => onSetAmbientVolume(parseFloat(e.target.value))}
+                className="w-20 accent-cyan-400 cursor-pointer"
+                title={`Ambient Volume: ${Math.round(ambientVolume * 100)}%`}
+              />
+              <span className="text-cyan-300 font-bold min-w-8 text-right">
+                {Math.round(ambientVolume * 100)}%
+              </span>
+            </div>
+
+            {/* Quick volume presets */}
+            <div className="hidden sm:flex items-center bg-[#0b0d17] border border-[#232b47] rounded-lg p-0.5 text-[10px] font-mono">
+              <button
+                onClick={() => onSetAmbientVolume(0.1)}
+                className={`px-2 py-1 rounded transition-colors ${
+                  ambientVolume <= 0.12 ? 'bg-cyan-950 text-cyan-300 font-bold' : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                Subtle
+              </button>
+              <button
+                onClick={() => onSetAmbientVolume(0.18)}
+                className={`px-2 py-1 rounded transition-colors ${
+                  ambientVolume > 0.12 && ambientVolume <= 0.25 ? 'bg-cyan-950 text-cyan-300 font-bold' : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                Nominal
+              </button>
+              <button
+                onClick={() => onSetAmbientVolume(0.32)}
+                className={`px-2 py-1 rounded transition-colors ${
+                  ambientVolume > 0.25 ? 'bg-cyan-950 text-cyan-300 font-bold' : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                Deep
+              </button>
+            </div>
+
+            {/* Main Toggle Button */}
+            <button
+              onClick={() => {
+                onToggleAmbient();
+                playCosmicSound('beep');
+              }}
+              className={`px-4 py-2 rounded-lg font-bold text-xs transition-all flex items-center gap-2 ${
+                isAmbientPlaying
+                  ? 'bg-rose-950/70 hover:bg-rose-900/90 text-rose-300 border border-rose-700/80 shadow-[0_0_12px_rgba(244,63,94,0.2)]'
+                  : 'bg-gradient-to-r from-cyan-600 to-indigo-600 hover:from-cyan-500 hover:to-indigo-500 text-white shadow-[0_0_15px_rgba(6,182,212,0.3)]'
+              }`}
+            >
+              {isAmbientPlaying ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+              <span>{isAmbientPlaying ? 'Silence Soundscape' : 'Engage Station Soundscape'}</span>
+            </button>
+          </div>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">

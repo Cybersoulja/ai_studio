@@ -13,7 +13,8 @@ import { NewMissionModal } from './components/NewMissionModal';
 import { GenesisUnlockModal } from './components/GenesisUnlockModal';
 import { SuperpowerModal } from './components/SuperpowerModal';
 import { SkillDocModal } from './components/SkillDocModal';
-import { Commander, PlayerStats, Agent, Mission, InventoryItem, Dispatch } from './types';
+import { InkRpgView } from './components/InkRpgView';
+import { Commander, PlayerStats, Agent, Mission, InventoryItem, Dispatch, DailyXpRecord } from './types';
 import {
   INITIAL_COMMANDER,
   INITIAL_STATS,
@@ -21,6 +22,7 @@ import {
   INITIAL_MISSIONS,
   INITIAL_INVENTORY,
   INITIAL_DISPATCHES,
+  INITIAL_XP_HISTORY,
   BUZZ_MOTIVATIONAL_QUOTES
 } from './data/initialData';
 import {
@@ -29,6 +31,7 @@ import {
   playCosmicSound,
   UnlockEvent
 } from './services/genesisEngine';
+import { spaceStationAudio } from './services/ambientAudio';
 
 const STORAGE_KEY = 'uss_hustle_state_v1';
 
@@ -91,6 +94,15 @@ export const App: React.FC = () => {
     }
   });
 
+  const [xpHistory, setXpHistory] = useState<DailyXpRecord[]>(() => {
+    try {
+      const saved = localStorage.getItem(`${STORAGE_KEY}_xp_history`);
+      return saved ? JSON.parse(saved) : INITIAL_XP_HISTORY;
+    } catch {
+      return INITIAL_XP_HISTORY;
+    }
+  });
+
   // Dynamic UI States
   const [statusBanner, setStatusBanner] = useState<string>(
     '⚡ Zero-Gravity Anti-Gravity Field: 100% | All Systems Nominal'
@@ -98,6 +110,36 @@ export const App: React.FC = () => {
   const [currentQuote, setCurrentQuote] = useState<string>(
     BUZZ_MOTIVATIONAL_QUOTES[0]
   );
+
+  // Ambient Space Station Soundscape Player State
+  const [isAmbientPlaying, setIsAmbientPlaying] = useState<boolean>(false);
+  const [ambientVolume, setAmbientVolume] = useState<number>(0.18);
+
+  const handleToggleAmbient = () => {
+    if (isAmbientPlaying) {
+      spaceStationAudio.stop();
+      setIsAmbientPlaying(false);
+      setStatusBanner('🔇 Space station ambient soundscape paused.');
+    } else {
+      const started = spaceStationAudio.start(ambientVolume);
+      if (started) {
+        setIsAmbientPlaying(true);
+        setStatusBanner('🛰️ Space station ambient soundscape active: Reactor core hum & life-support airflow.');
+      }
+    }
+  };
+
+  const handleSetAmbientVolume = (vol: number) => {
+    setAmbientVolume(vol);
+    spaceStationAudio.setVolume(vol);
+  };
+
+  // Clean up ambient soundscape on unmount
+  useEffect(() => {
+    return () => {
+      spaceStationAudio.stop();
+    };
+  }, []);
 
   // Modals
   const [isCheckinOpen, setIsCheckinOpen] = useState(false);
@@ -145,6 +187,28 @@ export const App: React.FC = () => {
     } catch {}
   }, [dispatches]);
 
+  useEffect(() => {
+    try {
+      localStorage.setItem(`${STORAGE_KEY}_xp_history`, JSON.stringify(xpHistory));
+    } catch {}
+  }, [xpHistory]);
+
+  const addXpToHistory = (amount: number, isTask = false) => {
+    setXpHistory((prev) => {
+      const updated = [...prev];
+      const todayIdx = updated.findIndex((d) => d.dayLabel === 'Today');
+      if (todayIdx >= 0) {
+        updated[todayIdx] = {
+          ...updated[todayIdx],
+          xpGained: updated[todayIdx].xpGained + amount,
+          cumulativeXp: updated[todayIdx].cumulativeXp + amount,
+          tasksCompleted: isTask ? updated[todayIdx].tasksCompleted + 1 : updated[todayIdx].tasksCompleted
+        };
+      }
+      return updated;
+    });
+  };
+
   // Keyboard shortcut listener matching TUI
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -153,7 +217,7 @@ export const App: React.FC = () => {
         return;
       }
 
-      if (e.key >= '1' && e.key <= '6') {
+      if (e.key >= '1' && e.key <= '7') {
         const tabIdx = parseInt(e.key, 10) - 1;
         setActiveTab(tabIdx);
         playCosmicSound('beep');
@@ -193,6 +257,11 @@ export const App: React.FC = () => {
     };
     setStats(newStats);
 
+    // Give a +10 XP telemetry sync bonus
+    const { updatedCommander, leveledUp } = addXP(commander, 10);
+    setCommander(updatedCommander);
+    addXpToHistory(10, true);
+
     // Evaluate Genesis Engine
     const { updatedAgents, newUnlocks } = evaluateAgentGenesis(newStats, agents);
     setAgents(updatedAgents);
@@ -204,7 +273,11 @@ export const App: React.FC = () => {
       playCosmicSound('unlock');
       confetti({ particleCount: 100, spread: 80, origin: { y: 0.5 } });
     } else {
-      setStatusBanner(`✅ Logged +1 ${metric.replace('_', ' ')}. Telemetry synced.`);
+      setStatusBanner(`✅ Logged +1 ${metric.replace('_', ' ')}. Telemetry synced (+10 XP).`);
+    }
+
+    if (leveledUp) {
+      playCosmicSound('levelUp');
     }
   };
 
@@ -212,6 +285,7 @@ export const App: React.FC = () => {
   const handleClaimXP = (xp: number, summary: string) => {
     const { updatedCommander, leveledUp } = addXP(commander, xp);
     setCommander(updatedCommander);
+    addXpToHistory(xp, true);
 
     if (leveledUp) {
       setStatusBanner(`⭐ LEVEL UP! Commander is now Level ${updatedCommander.level} (${updatedCommander.rank})!`);
@@ -250,6 +324,7 @@ export const App: React.FC = () => {
 
     const { updatedCommander, leveledUp } = addXP(commander, target.xp);
     setCommander(updatedCommander);
+    addXpToHistory(target.xp, true);
 
     // 50% chance of random loot drop on completion
     const droppedLoot = Math.random() > 0.4;
@@ -293,10 +368,12 @@ export const App: React.FC = () => {
     } else if (itemName === 'Warp Accelerator') {
       const { updatedCommander } = addXP(commander, 150);
       setCommander(updatedCommander);
+      addXpToHistory(150, false);
       setStatusBanner(`🚀 Warp Accelerator engaged! +150 XP warp surge claimed.`);
     } else if (itemName === 'Quantum Levitation Token') {
       const { updatedCommander } = addXP(commander, 100);
       setCommander(updatedCommander);
+      addXpToHistory(100, false);
       setStatusBanner(`🪙 Quantum Levitation Token used! Zero-gravity shield activated.`);
     }
 
@@ -311,6 +388,7 @@ export const App: React.FC = () => {
     const randomXP = Math.floor(60 + Math.random() * 80);
     const { updatedCommander } = addXP(commander, randomXP);
     setCommander(updatedCommander);
+    addXpToHistory(randomXP, false);
 
     // grant coffee + crystal
     setInventory((prev) =>
@@ -338,6 +416,7 @@ export const App: React.FC = () => {
 
     const { updatedCommander, leveledUp } = addXP(commander, xpBonus);
     setCommander(updatedCommander);
+    addXpToHistory(xpBonus, true);
 
     setStatusBanner(`⚡ Superpower completed! +${xpBonus} XP banked. Agent loyalty +5%.`);
   };
@@ -353,6 +432,7 @@ export const App: React.FC = () => {
       ...updatedCommander,
       streak_days: commander.streak_days + 1
     });
+    addXpToHistory(150, true);
     setStatusBanner('🌅 Daily 09:00 Briefing synchronized! +150 XP & streak updated.');
     setIsBriefingModalOpen(false);
     confetti({ particleCount: 90, spread: 80 });
@@ -366,6 +446,18 @@ export const App: React.FC = () => {
     );
   };
 
+  // Add item from Ink RPG story discovery
+  const handleAddItem = (itemName: string) => {
+    setInventory((prev) => {
+      const existing = prev.find((i) => i.name === itemName);
+      if (existing) {
+        return prev.map((i) => (i.name === itemName ? { ...i, count: i.count + 1 } : i));
+      }
+      return [...prev, { name: itemName, count: 1, desc: 'Acquired during Ink RPG expedition', icon: '💎' }];
+    });
+    setStatusBanner(`💎 Acquired 1x ${itemName} from Ink RPG expedition! Added to Cargo Bay.`);
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-[#0b0d17] text-[#f8fafc]">
       {/* HUD Header */}
@@ -373,6 +465,8 @@ export const App: React.FC = () => {
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         commander={commander}
+        isAmbientPlaying={isAmbientPlaying}
+        onToggleAmbient={handleToggleAmbient}
         onUpdateStatus={(newStatus) => setCommander((prev) => ({ ...prev, status: newStatus }))}
         onOpenCheckin={() => {
           setSelectedCheckinMission(undefined);
@@ -390,6 +484,7 @@ export const App: React.FC = () => {
             stats={stats}
             missions={missions}
             agents={agents}
+            xpHistory={xpHistory}
             currentQuote={currentQuote}
             onRefreshQuote={handleRefreshQuote}
             onOpenCheckin={() => {
@@ -406,6 +501,10 @@ export const App: React.FC = () => {
               setCommander((prev) => ({ ...prev, callsign: newCallsign }))
             }
             onTriggerBriefing={handleTriggerBriefing}
+            onLaunchInkRpg={() => {
+              setActiveTab(6);
+              playCosmicSound('warp');
+            }}
           />
         )}
 
@@ -456,6 +555,17 @@ export const App: React.FC = () => {
         {activeTab === 5 && (
           <OperationsGateway
             onTriggerDailyBriefing={handleTriggerBriefing}
+            isAmbientPlaying={isAmbientPlaying}
+            ambientVolume={ambientVolume}
+            onToggleAmbient={handleToggleAmbient}
+            onSetAmbientVolume={handleSetAmbientVolume}
+          />
+        )}
+
+        {activeTab === 6 && (
+          <InkRpgView
+            onClaimXP={handleClaimXP}
+            onAddItem={handleAddItem}
           />
         )}
       </main>

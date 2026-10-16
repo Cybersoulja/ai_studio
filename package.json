@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "vite --host 0.0.0.0 --port 3000",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "lint": "tsc --noEmit"
   },
   "keywords": ["space-age-hustle", "trill-astro-buzz", "rpg", "productivity", "cloudflare-workers", "d1"],
   "author": "Oneseco Media",
@@ -24,8 +25,10 @@
   },
   "dependencies": {
     "canvas-confetti": "^1.9.4",
+    "inkjs": "^2.4.0",
     "lucide-react": "^1.56.0",
     "react": "^19.3.0",
-    "react-dom": "^19.3.0"
+    "react-dom": "^19.3.0",
+    "recharts": "^3.10.1"
   }
 }

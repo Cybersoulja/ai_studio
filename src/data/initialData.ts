@@ -1,4 +1,14 @@
-import { Commander, PlayerStats, Agent, Mission, InventoryItem, Dispatch, StoryNode, AutomationItem } from '../types';
+import { Commander, PlayerStats, Agent, Mission, InventoryItem, Dispatch, StoryNode, AutomationItem, DailyXpRecord } from '../types';
+
+export const INITIAL_XP_HISTORY: DailyXpRecord[] = [
+  { date: "Oct 9", dayLabel: "Fri", xpGained: 60, cumulativeXp: 60, tasksCompleted: 2 },
+  { date: "Oct 10", dayLabel: "Sat", xpGained: 85, cumulativeXp: 145, tasksCompleted: 3 },
+  { date: "Oct 11", dayLabel: "Sun", xpGained: 70, cumulativeXp: 215, tasksCompleted: 2 },
+  { date: "Oct 12", dayLabel: "Mon", xpGained: 95, cumulativeXp: 310, tasksCompleted: 4 },
+  { date: "Oct 13", dayLabel: "Tue", xpGained: 65, cumulativeXp: 375, tasksCompleted: 2 },
+  { date: "Oct 14", dayLabel: "Wed", xpGained: 75, cumulativeXp: 450, tasksCompleted: 3 },
+  { date: "Oct 15", dayLabel: "Today", xpGained: 80, cumulativeXp: 530, tasksCompleted: 3 }
+];
 
 export const INITIAL_COMMANDER: Commander = {
   callsign: "Commander",

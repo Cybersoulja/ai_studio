@@ -15,7 +15,7 @@ export const Footer: React.FC<FooterProps> = ({ statusBanner }) => {
 
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-slate-400 text-[11px]">
           <span className="bg-[#121626] border border-[#232b47] px-1.5 py-0.5 rounded text-slate-300 font-mono">
-            [1-6] Tabs
+            [1-7] Tabs
           </span>
           <span className="bg-[#121626] border border-[#232b47] px-1.5 py-0.5 rounded text-slate-300 font-mono">
             [C] Check-in

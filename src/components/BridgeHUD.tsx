@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
 import { Shield, Bug, Rocket, TestTube2, Users2, Sparkles, MessageSquareQuote, CheckCircle2, ChevronRight, RefreshCw, Zap } from 'lucide-react';
-import { Commander, PlayerStats, Mission, Agent } from '../types';
+import { Commander, PlayerStats, Mission, Agent, DailyXpRecord } from '../types';
 import { playCosmicSound } from '../services/genesisEngine';
+import { XPBarChart } from './XPBarChart';
 
 interface BridgeHUDProps {
   commander: Commander;
   stats: PlayerStats;
   missions: Mission[];
   agents: Agent[];
+  xpHistory: DailyXpRecord[];
   currentQuote: string;
   onRefreshQuote: () => void;
   onOpenCheckin: () => void;
@@ -15,6 +17,7 @@ interface BridgeHUDProps {
   onSelectMission: (missionId: string) => void;
   onUpdateCallsign: (newCallsign: string) => void;
   onTriggerBriefing: () => void;
+  onLaunchInkRpg?: () => void;
 }
 
 export const BridgeHUD: React.FC<BridgeHUDProps> = ({
@@ -22,6 +25,7 @@ export const BridgeHUD: React.FC<BridgeHUDProps> = ({
   stats,
   missions,
   agents,
+  xpHistory,
   currentQuote,
   onRefreshQuote,
   onOpenCheckin,
@@ -29,6 +33,7 @@ export const BridgeHUD: React.FC<BridgeHUDProps> = ({
   onSelectMission,
   onUpdateCallsign,
   onTriggerBriefing,
+  onLaunchInkRpg,
 }) => {
   const [isEditingCallsign, setIsEditingCallsign] = useState(false);
   const [tempCallsign, setTempCallsign] = useState(commander.callsign);
@@ -107,13 +112,27 @@ export const BridgeHUD: React.FC<BridgeHUDProps> = ({
             All engineering signals mapped to Agent Genesis.
           </span>
         </div>
-        <button
-          onClick={onTriggerBriefing}
-          className="text-xs px-2.5 py-1 bg-cyan-900/40 hover:bg-cyan-800/60 border border-cyan-600/50 text-cyan-200 rounded transition-colors flex items-center gap-1.5"
-        >
-          <span>Run 09:00 Briefing</span>
-          <ChevronRight className="w-3.5 h-3.5" />
-        </button>
+        <div className="flex items-center gap-2">
+          {onLaunchInkRpg && (
+            <button
+              onClick={() => {
+                playCosmicSound('warp');
+                onLaunchInkRpg();
+              }}
+              className="text-xs px-2.5 py-1 bg-gradient-to-r from-purple-950 to-indigo-950 hover:from-purple-900 hover:to-indigo-900 border border-purple-600/70 text-purple-200 rounded font-semibold transition-all flex items-center gap-1.5 shadow"
+            >
+              <span>🎮</span>
+              <span>Ink RPG Expedition</span>
+            </button>
+          )}
+          <button
+            onClick={onTriggerBriefing}
+            className="text-xs px-2.5 py-1 bg-cyan-900/40 hover:bg-cyan-800/60 border border-cyan-600/50 text-cyan-200 rounded transition-colors flex items-center gap-1.5"
+          >
+            <span>Run 09:00 Briefing</span>
+            <ChevronRight className="w-3.5 h-3.5" />
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
@@ -329,6 +348,9 @@ export const BridgeHUD: React.FC<BridgeHUDProps> = ({
               </div>
             </div>
           </div>
+
+          {/* 7-Day Orbital XP Growth Bar Chart */}
+          <XPBarChart xpHistory={xpHistory} />
 
           {/* Priority Orbital Quest Card */}
           {topMission ? (

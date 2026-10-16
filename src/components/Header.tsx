@@ -1,5 +1,5 @@
 import React from 'react';
-import { Rocket, Users, ClipboardList, Package, Radio, Terminal, Sparkles, CheckCircle2 } from 'lucide-react';
+import { Rocket, Users, ClipboardList, Package, Radio, Terminal, Sparkles, CheckCircle2, Volume2, VolumeX, Gamepad2 } from 'lucide-react';
 import { Commander } from '../types';
 import { CUSTOM_STATUSES } from '../data/initialData';
 import { playCosmicSound } from '../services/genesisEngine';
@@ -8,6 +8,8 @@ interface HeaderProps {
   activeTab: number;
   setActiveTab: (tab: number) => void;
   commander: Commander;
+  isAmbientPlaying?: boolean;
+  onToggleAmbient?: () => void;
   onUpdateStatus: (status: string) => void;
   onOpenCheckin: () => void;
   onOpenNewMission: () => void;
@@ -18,6 +20,8 @@ export const Header: React.FC<HeaderProps> = ({
   activeTab,
   setActiveTab,
   commander,
+  isAmbientPlaying = false,
+  onToggleAmbient,
   onUpdateStatus,
   onOpenCheckin,
   onOpenNewMission,
@@ -30,6 +34,7 @@ export const Header: React.FC<HeaderProps> = ({
     { id: 3, label: 'CARGO BAY', icon: Package },
     { id: 4, label: 'DISPATCHES & STORY', icon: Radio },
     { id: 5, label: 'OPERATIONS GATEWAY', icon: Terminal },
+    { id: 6, label: 'INK RPG LAYER', icon: Gamepad2 },
   ];
 
   const currentStatusObj = CUSTOM_STATUSES.find(s => s.label === commander.status) || CUSTOM_STATUSES[1];
@@ -74,6 +79,34 @@ export const Header: React.FC<HeaderProps> = ({
               ))}
             </select>
           </div>
+
+          {/* Quick Action: Space Station Ambient Soundscape Toggle */}
+          {onToggleAmbient && (
+            <button
+              onClick={() => {
+                onToggleAmbient();
+                playCosmicSound('beep');
+              }}
+              className={`px-2.5 py-1 rounded text-xs border transition-all flex items-center gap-1.5 ${
+                isAmbientPlaying
+                  ? 'bg-cyan-950 text-cyan-300 border-cyan-500 shadow-[0_0_10px_rgba(6,182,212,0.3)]'
+                  : 'bg-[#121626] hover:bg-[#1a2035] border-[#232b47] text-slate-400 hover:text-slate-200'
+              }`}
+              title={isAmbientPlaying ? 'Mute Space Station Ambient Soundscape' : 'Play Space Station Ambient Soundscape'}
+            >
+              {isAmbientPlaying ? (
+                <>
+                  <Volume2 className="w-3.5 h-3.5 text-cyan-400 animate-pulse" />
+                  <span className="hidden sm:inline font-mono text-[11px] font-semibold text-cyan-300">Station Hum</span>
+                </>
+              ) : (
+                <>
+                  <VolumeX className="w-3.5 h-3.5 text-slate-400" />
+                  <span className="hidden sm:inline font-mono text-[11px]">Station Hum</span>
+                </>
+              )}
+            </button>
+          )}
 
           {/* Quick Action: Morning Briefing */}
           <button

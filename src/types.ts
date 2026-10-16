@@ -8,6 +8,14 @@ export interface Commander {
   status: string;
 }
 
+export interface DailyXpRecord {
+  date: string;
+  dayLabel: string;
+  xpGained: number;
+  cumulativeXp: number;
+  tasksCompleted: number;
+}
+
 export interface PlayerStats {
   bugs_fixed: number;
   deployments: number;
