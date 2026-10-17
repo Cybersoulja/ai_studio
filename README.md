@@ -24,6 +24,8 @@ This project consolidates `trill-local-runtime` (automation/n8n catalog), `charh
 
 **Run locally:** `cp .env.example .env && bun install && bun run dev` (port 3000).
 
+**Google Colab:** open [colab/uss_hustle_n8n.ipynb](colab/uss_hustle_n8n.ipynb) to explore the n8n catalog from Colab.
+
 ---
 
 ## 🌌 Overview
