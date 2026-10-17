@@ -18,6 +18,16 @@
 
 ---
 
+## 🔗 Imported Sources
+
+This project consolidates `trill-local-runtime` (automation/n8n catalog), `charhubai-stagetemp` (UI composition) and `canva-apps-sdk-starter-kit` (app starter patterns). See [docs/sources.md](docs/sources.md) for the mapping and configuration.
+
+**Run locally:** `cp .env.example .env && bun install && bun run dev` (port 3000).
+
+**Google Colab:** open [colab/uss_hustle_n8n.ipynb](colab/uss_hustle_n8n.ipynb) to explore the n8n catalog from Colab.
+
+---
+
 ## 🌌 Overview
 
 **USS Hustle** is a zero-gravity productivity RPG engine and digital agent command center built for **Oneseco Media**. It translates real engineering workflows—Jira tickets, GitHub PRs, bug fixes, test coverage, and production deployments—into in-game XP, loot drops, and dynamic AI crew unlocks.

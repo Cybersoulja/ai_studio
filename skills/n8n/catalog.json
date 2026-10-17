@@ -1,0 +1,73 @@
+{
+  "version": "1.0",
+  "source": {
+    "name": "n8n Public REST API v1",
+    "documentation_url": "https://docs.n8n.io/api/v1/",
+    "origin_repo": "Cybersoulja/trill-local-runtime",
+    "last_verified_at": null
+  },
+  "auth": {
+    "type": "api_key",
+    "header_name": "X-N8N-API-KEY",
+    "api_key_env": "N8N_API_KEY",
+    "base_url_env": "N8N_BASE_URL",
+    "base_url_default": "http://localhost:5678",
+    "api_prefix": "/api/v1"
+  },
+  "endpoints": [
+    {
+      "name": "workflows_list", "resource": "workflows", "method": "GET", "path": "/api/v1/workflows",
+      "description": "List configured automation workflows and pipelines",
+      "filters": [
+        { "name": "active", "type": "boolean" },
+        { "name": "tags", "type": "string[]" },
+        { "name": "name", "type": "string" },
+        { "name": "limit", "type": "integer" },
+        { "name": "cursor", "type": "string" }
+      ],
+      "response": { "kind": "list", "item_fields": ["id", "name", "active", "createdAt", "updatedAt", "tags"] }
+    },
+    {
+      "name": "workflow_get", "resource": "workflows", "method": "GET", "path": "/api/v1/workflows/:id",
+      "description": "Fetch a single workflow by ID",
+      "path_params": [{ "name": "id", "type": "string", "required": true }]
+    },
+    {
+      "name": "executions_list", "resource": "executions", "method": "GET", "path": "/api/v1/executions",
+      "description": "List historical workflow executions",
+      "filters": [
+        { "name": "status", "type": "string", "allowed": ["success", "error", "running", "waiting"] },
+        { "name": "workflowId", "type": "string" },
+        { "name": "includeData", "type": "boolean" },
+        { "name": "limit", "type": "integer" },
+        { "name": "cursor", "type": "string" }
+      ],
+      "response": { "kind": "list", "item_fields": ["id", "finished", "mode", "status", "startedAt", "stoppedAt", "workflowId"] }
+    },
+    {
+      "name": "execution_get", "resource": "executions", "method": "GET", "path": "/api/v1/executions/:id",
+      "description": "Fetch a single execution by ID",
+      "path_params": [{ "name": "id", "type": "string", "required": true }]
+    },
+    {
+      "name": "tags_list", "resource": "tags", "method": "GET", "path": "/api/v1/tags",
+      "description": "List organizational label tags assigned to workflows",
+      "filters": [
+        { "name": "limit", "type": "integer" },
+        { "name": "cursor", "type": "string" }
+      ],
+      "response": { "kind": "list", "item_fields": ["id", "name", "createdAt", "updatedAt"] }
+    },
+    {
+      "name": "tag_get", "resource": "tags", "method": "GET", "path": "/api/v1/tags/:id",
+      "description": "Fetch a single tag by ID",
+      "path_params": [{ "name": "id", "type": "string", "required": true }]
+    },
+    {
+      "name": "credential_schema", "resource": "credentials", "method": "GET",
+      "path": "/api/v1/credentials/schema/:credentialTypeName",
+      "description": "Fetch the schema for a credential type",
+      "path_params": [{ "name": "credentialTypeName", "type": "string", "required": true }]
+    }
+  ]
+}
